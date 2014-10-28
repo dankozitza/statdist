@@ -22,6 +22,7 @@ type Stat struct {
 }
 
 var stat_map map[string]Stat = make(map[string]Stat)
+var id_cnt int = 0
 
 // Handle
 //
@@ -37,6 +38,16 @@ func Handle(s Stat) {
 //
 func RmHandle(s Stat) {
 	delete(stat_map, strconv.Itoa(s.Id))
+}
+
+// GetId
+//
+// used to give each Stat object a unique id number
+//
+func GetId() int {
+	giveid := id_cnt
+	id_cnt += 1
+	return giveid
 }
 
 // JSONStatMap
@@ -66,5 +77,4 @@ func (j JSONStatMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//
 	//fmt.Println(seestack.Short(), "r:")
 	//fmt.Println(r)
-
 }
