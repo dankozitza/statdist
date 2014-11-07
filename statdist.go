@@ -3,6 +3,7 @@ package statdist
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dankozitza/logdist"
 	"net/http"
 	"strconv"
 )
@@ -29,6 +30,8 @@ var id_cnt int = 0
 // Sets Stat objects in stat_map.
 //
 func Handle(s Stat) {
+	logdist.Message("", "[" +  s.ShortStack + "][" +
+		s.Status + "][" + strconv.Itoa(s.Id) + "] " + s.Message + "\n", true)
 	stat_map[strconv.Itoa(s.Id)] = s
 }
 
@@ -75,6 +78,6 @@ func (j JSONStatMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//
 	// will have to call logdist manually
 	//
-	//fmt.Println(seestack.Short(), "r:")
-	//fmt.Println(r)
+	fmt.Println("r:")
+	fmt.Println(r)
 }
