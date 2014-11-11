@@ -24,14 +24,16 @@ type Stat struct {
 
 var stat_map map[string]Stat = make(map[string]Stat)
 var id_cnt int = 0
+var access_log string
 
 // Handle
 //
 // Sets Stat objects in stat_map.
 //
 func Handle(s Stat) {
-	logdist.Message("", "[" +  s.ShortStack + "][" +
-		s.Status + "][" + strconv.Itoa(s.Id) + "] " + s.Message + "\n", true)
+
+	logdist.Message("", "["+s.ShortStack+"]["+
+		s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n", true)
 	stat_map[strconv.Itoa(s.Id)] = s
 }
 
@@ -58,8 +60,8 @@ func GetId() int {
 // Handler used to write stat_map to http.ResponseWriter.
 // Add to a http object with:
 //
-// 	var jsm statdist.JSONStatMap
-//		http.Handle("/stat", jsm)
+//    var jsm statdist.JSONStatMap
+//      http.Handle("/stat", jsm)
 //
 type JSONStatMap string
 
@@ -78,6 +80,21 @@ func (j JSONStatMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//
 	// will have to call logdist manually
 	//
-	fmt.Println("r:")
-	fmt.Println(r)
+	if access_log != "" {
+		m_request, err := json.Marshal(r)
+		if err != nil {
+			panic(ErrStatDistGeneric(err.Error()))
+		}
+		logdist.Message(access_log, string(m_request)+"\n", false)
+	}
+	//fmt.Println("r:")
+	//fmt.Println(r)
+}
+
+// SetAccessLog
+//
+// Sets the file path for logging http.Request objects
+//
+func SetAccessLog(f string) {
+	access_log = f
 }
