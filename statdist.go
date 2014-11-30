@@ -26,6 +26,8 @@ var stat_map map[string]Stat = make(map[string]Stat)
 var id_cnt int = 0
 var access_log string
 
+//var conf sconf.Sconf = sconf.Inst()
+
 // Handle
 //
 // Sets Stat objects in stat_map.
@@ -98,3 +100,29 @@ func (j JSONStatMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func SetAccessLog(f string) {
 	access_log = f
 }
+
+// wanted to set up INIT and PASS to only print when logtrack_verbosity_level
+// is at 4 or above. can't do this because sconf imports statdist.
+//
+//func msg_control(s *Stat) {
+//
+//   var v int
+//
+//   if (s.Status == "INIT" || s.Status == "PASS") {
+//      v = 4
+//
+//   } else if (s.Status != "PASS") {
+//      v = 2
+//
+//   } else {
+//      v = 3
+//   }
+//
+//   // logtrack_verbosity_level is normally used by logtrack but because of
+//   // dependency issues this package uses logdist directly
+//   //
+//   if (conf["logtrack_verbosity_leve"].(int) >= v) {
+//	   logdist.Message("", "["+s.ShortStack+"]["+
+//         s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n", true)
+//   }
+//}
