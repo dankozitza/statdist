@@ -34,8 +34,8 @@ var access_log string
 //
 func Handle(s Stat) {
 
-	logdist.Message("", "["+s.ShortStack+"]["+
-		s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n", true)
+	logdist.Message("", true, "["+s.ShortStack+"]["+
+		s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n")
 	stat_map[strconv.Itoa(s.Id)] = s
 }
 
@@ -87,7 +87,7 @@ func (j JSONStatMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(ErrStatDistGeneric(err.Error()))
 		}
-		logdist.Message(access_log, string(m_request)+"\n", false)
+		logdist.Message(access_log, false, string(m_request)+"\n")
 	}
 	//fmt.Println("r:")
 	//fmt.Println(r)
