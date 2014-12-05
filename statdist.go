@@ -26,8 +26,6 @@ var stat_map map[string]Stat = make(map[string]Stat)
 var id_cnt int = 0
 var access_log string
 
-//var conf sconf.Sconf = sconf.Inst()
-
 // Handle
 //
 // Sets Stat objects in stat_map.
@@ -57,7 +55,7 @@ func GetId() int {
 	return giveid
 }
 
-// JSONStatMap
+// HTTPHandler
 //
 // Handler used to write stat_map to http.ResponseWriter.
 // Add to a http object with:
@@ -65,9 +63,9 @@ func GetId() int {
 //    var jsm statdist.JSONStatMap
 //      http.Handle("/stat", jsm)
 //
-type JSONStatMap string
+type HTTPHandler string
 
-func (j JSONStatMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (j HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	m_map, err := json.MarshalIndent(stat_map, "", "   ")
 	if err != nil {
@@ -77,8 +75,6 @@ func (j JSONStatMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(m_map))
 
 	// may want to keep this somewhere along with logs
-	// use syslog.New(priority Priority, tag string) (w *Writer, err error) maybe
-	// in a different package.
 	//
 	// will have to call logdist manually
 	//
@@ -89,8 +85,6 @@ func (j JSONStatMap) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		logdist.Message(access_log, false, string(m_request)+"\n")
 	}
-	//fmt.Println("r:")
-	//fmt.Println(r)
 }
 
 // SetAccessLog

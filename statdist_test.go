@@ -9,7 +9,7 @@ import (
 )
 
 func TestHandler(t *testing.T) {
-	var jsm JSONStatMap
+	var jsm HTTPHandler
 	http.Handle("/statdist", jsm)
 }
 
@@ -34,7 +34,7 @@ func TestRmHandle(t *testing.T) {
 }
 
 func TestSetAccessLog(t *testing.T) {
-	var ldh logdist.LogDistHandler = "statdist_access.log"
+	var ldh logdist.HTTPHandler = "statdist_access.log"
 	http.Handle("/statdist_access.log", ldh)
 
 	SetAccessLog("statdist_access.log")
