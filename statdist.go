@@ -30,10 +30,12 @@ var access_log string
 //
 // Sets Stat objects in stat_map.
 //
-func Handle(s Stat) {
+func Handle(s Stat, quiet bool) {
 
-	logdist.Message("", true, "["+s.ShortStack+"]["+
-		s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n")
+	if !quiet {
+		logdist.Message("", true, "["+s.ShortStack+"]["+
+			s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n")
+	}
 	stat_map[strconv.Itoa(s.Id)] = s
 }
 
@@ -94,29 +96,3 @@ func (j HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func SetAccessLog(f string) {
 	access_log = f
 }
-
-// wanted to set up INIT and PASS to only print when logtrack_verbosity_level
-// is at 4 or above. can't do this because sconf imports statdist.
-//
-//func msg_control(s *Stat) {
-//
-//   var v int
-//
-//   if (s.Status == "INIT" || s.Status == "PASS") {
-//      v = 4
-//
-//   } else if (s.Status != "PASS") {
-//      v = 2
-//
-//   } else {
-//      v = 3
-//   }
-//
-//   // logtrack_verbosity_level is normally used by logtrack but because of
-//   // dependency issues this package uses logdist directly
-//   //
-//   if (conf["logtrack_verbosity_leve"].(int) >= v) {
-//	   logdist.Message("", "["+s.ShortStack+"]["+
-//         s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n", true)
-//   }
-//}

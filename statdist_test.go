@@ -15,7 +15,7 @@ func TestHandler(t *testing.T) {
 
 func TestHandle(t *testing.T) {
 	s := Stat{GetId(), "status", "shortstack", "message", "stack"}
-	Handle(s)
+	Handle(s, false)
 
 	if _, ok := stat_map["0"]; !ok {
 		fmt.Println("TestHandle: stat_map does not have correct contents!")
