@@ -62,8 +62,8 @@ func GetId() int {
 // Handler used to write stat_map to http.ResponseWriter.
 // Add to a http object with:
 //
-//    var jsm statdist.JSONStatMap
-//      http.Handle("/stat", jsm)
+// 	var jsm statdist.JSONStatMap
+// 	http.Handle("/stat", jsm)
 //
 type HTTPHandler string
 
@@ -76,10 +76,6 @@ func (j HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, string(m_map))
 
-	// may want to keep this somewhere along with logs
-	//
-	// will have to call logdist manually
-	//
 	if access_log != "" {
 		m_request, err := json.Marshal(r)
 		if err != nil {
