@@ -3,7 +3,9 @@ package statdist
 import (
 	"encoding/json"
 	"fmt"
+   "github.com/dankozitza/dkutils"
 	"github.com/dankozitza/logdist"
+   "github.com/nelsam/requests"
 	"net/http"
 	"strconv"
 )
@@ -22,29 +24,40 @@ type Stat struct {
 	Stack      string
 }
 
-var stat_map map[string]Stat = make(map[string]Stat)
+var prog_stat_map map[string]map[string]Stat = make(map[string]map[string]Stat)
+var pname string = "main";
+
+//var stat_map map[string]Stat = make(map[string]Stat)
 var id_cnt int = 0
 var access_log string
 
 // Handle
 //
-// Sets Stat objects in stat_map.
+// Sets Stat objects in default stat_map.
 //
 func Handle(s Stat, quiet bool) {
+
+   //set program_name here?
 
 	if !quiet {
 		logdist.Message("", true, "["+s.ShortStack+"]["+
 			s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n")
 	}
-	stat_map[strconv.Itoa(s.Id)] = s
+   if (prog_stat_map[pname] == nil) {
+      prog_stat_map[pname] = map[string]Stat{}
+   }
+   prog_stat_map[pname][strconv.Itoa(s.Id)] = s
 }
 
 // RmHandle
 //
-// deletes a Stat object from stat_map.
+// deletes a Stat object from default stat_map.
 //
 func RmHandle(s Stat) {
-	delete(stat_map, strconv.Itoa(s.Id))
+
+   // set program_name again
+
+	delete(prog_stat_map[pname], strconv.Itoa(s.Id))
 }
 
 // GetId
@@ -59,7 +72,7 @@ func GetId() int {
 
 // HTTPHandler
 //
-// Handler used to write stat_map to http.ResponseWriter.
+// Handler used to write prog_stat_map to http.ResponseWriter.
 // Add to a http object with:
 //
 // 	var jsm statdist.JSONStatMap
@@ -69,7 +82,7 @@ type HTTPHandler string
 
 func (j HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	m_map, err := json.MarshalIndent(stat_map, "", "   ")
+	m_map, err := json.MarshalIndent(prog_stat_map, "", "   ")
 	if err != nil {
 		panic(ErrStatDistGeneric(err.Error()))
 	}
@@ -83,6 +96,65 @@ func (j HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		logdist.Message(access_log, false, string(m_request)+"\n")
 	}
+}
+
+type HTTPPostHandler string
+
+func (j HTTPPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+   stat_template := map[string]interface{}{
+      "id":          int(0),
+      "status":      string(""),
+      "short_stack": string(""),
+      "message":     string(""),
+      "stack":       string(""),
+      "program":     string("")}
+
+   params, err := requests.New(r).Params()
+
+   if err != nil { // send the template
+      r_map, err := json.MarshalIndent(stat_template, "", "   ")
+      if err != nil {
+         fmt.Fprint(w, "statdist: could not marshal stat_template!")
+         return
+      }
+      fmt.Fprint(w, string(r_map))
+      return;
+   }
+
+   result, err := dkutils.DeepTypePersuade(stat_template, params);
+   if err != nil {
+      fmt.Fprint(w, "statdist: could not persuade input parameters to template")
+      return
+   }
+
+   s := Stat{
+      result.(map[string]interface{})["id"].(int),
+      result.(map[string]interface{})["status"].(string),
+      result.(map[string]interface{})["short_stack"].(string),
+      result.(map[string]interface{})["message"].(string),
+      result.(map[string]interface{})["stack"].(string)}
+
+   program := result.(map[string]interface{})["program"].(string)
+   if (prog_stat_map[program] == nil) {
+      prog_stat_map[program] = map[string]Stat{}
+   }
+   // set the result
+   prog_stat_map[program][strconv.Itoa(s.Id)] = s
+
+   // send the result
+   result.(map[string]interface{})["links"] = []interface{}{
+      &map[string]interface{}{
+         "href": "/statdist",
+         "rel":  "index"},
+      &map[string]interface{}{
+         "href": "/post_stat",
+         "rel":  "self"}}
+   r_map, err := json.MarshalIndent(result.(map[string]interface{}), "", "   ")
+   if err != nil {
+      fmt.Fprint(w, "statdist: could not marshal result!")
+      return
+   }
+   fmt.Fprint(w, string(r_map))
 }
 
 // SetAccessLog
