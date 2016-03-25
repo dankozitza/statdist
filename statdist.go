@@ -36,9 +36,6 @@ var access_log string
 // Sets Stat objects in default stat_map.
 //
 func Handle(s Stat, quiet bool) {
-
-   //set program_name here?
-
 	if !quiet {
 		logdist.Message("", true, "["+s.ShortStack+"]["+
 			s.Status+"]["+strconv.Itoa(s.Id)+"] "+s.Message+"\n")
@@ -54,9 +51,6 @@ func Handle(s Stat, quiet bool) {
 // deletes a Stat object from default stat_map.
 //
 func RmHandle(s Stat) {
-
-   // set program_name again
-
 	delete(prog_stat_map[pname], strconv.Itoa(s.Id))
 }
 
@@ -98,6 +92,9 @@ func (j HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// post to this handler by calling:
+// curl curl -d "program=pname&id=0&message=&short_stack=&stack=&status=PASS" \
+// dankozitza.com/post_stat
 type HTTPPostHandler string
 
 func (j HTTPPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +111,7 @@ func (j HTTPPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
    if err != nil { // send the template
       r_map, err := json.MarshalIndent(stat_template, "", "   ")
       if err != nil {
-         fmt.Fprint(w, "statdist: could not marshal stat_template!")
+         fmt.Fprint(w, "statdist: could not marshal stat_template!\n")
          return
       }
       fmt.Fprint(w, string(r_map))
@@ -123,7 +120,8 @@ func (j HTTPPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
    result, err := dkutils.DeepTypePersuade(stat_template, params);
    if err != nil {
-      fmt.Fprint(w, "statdist: could not persuade input parameters to template")
+      fmt.Fprint(w, "statdist: could not persuade input parameters to " +
+            "conform to template\n")
       return
    }
 
@@ -133,13 +131,6 @@ func (j HTTPPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
       result.(map[string]interface{})["short_stack"].(string),
       result.(map[string]interface{})["message"].(string),
       result.(map[string]interface{})["stack"].(string)}
-
-   program := result.(map[string]interface{})["program"].(string)
-   if (prog_stat_map[program] == nil) {
-      prog_stat_map[program] = map[string]Stat{}
-   }
-   // set the result
-   prog_stat_map[program][strconv.Itoa(s.Id)] = s
 
    // send the result
    result.(map[string]interface{})["links"] = []interface{}{
@@ -151,10 +142,18 @@ func (j HTTPPostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
          "rel":  "self"}}
    r_map, err := json.MarshalIndent(result.(map[string]interface{}), "", "   ")
    if err != nil {
-      fmt.Fprint(w, "statdist: could not marshal result!")
+      fmt.Fprint(w, "statdist: could not marshal result!\n")
       return
    }
+
    fmt.Fprint(w, string(r_map))
+
+   program := result.(map[string]interface{})["program"].(string)
+   if (prog_stat_map[program] == nil) {
+      prog_stat_map[program] = map[string]Stat{}
+   }
+   // set the result
+   prog_stat_map[program][strconv.Itoa(s.Id)] = s
 }
 
 // SetAccessLog
